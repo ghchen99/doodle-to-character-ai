@@ -26,7 +26,7 @@ const TransformationResult: React.FC<TransformationResultProps> = ({
   
   const renderLoadingState = () => (
     <div className="py-10 text-center">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 mb-4">
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 mb-4">
         <svg
           className="w-8 h-8 text-purple-600 animate-spin"
           xmlns="http://www.w3.org/2000/svg"
@@ -48,70 +48,24 @@ const TransformationResult: React.FC<TransformationResultProps> = ({
           ></path>
         </svg>
       </div>
-      <h3 className="text-lg font-medium mb-2">Transformation in progress...</h3>
+      <h3 className="text-lg font-medium mb-2">
+        {currentStep === 'describe' ? 'Analyzing your drawing...' : 'Creating magical artwork...'}
+      </h3>
       <p className="text-muted-foreground mb-4">This may take a moment</p>
       <Progress 
         value={currentStep === 'describe' ? 50 : 75} 
-        className="max-w-md mx-auto"
+        className="max-w-md mx-auto h-2 bg-gradient-to-r from-purple-100 to-blue-100"
       />
     </div>
   )
   
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          {renderLoadingState()}
-        </CardContent>
-      </Card>
-    )
-  }
-  
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Original Drawing */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Original Drawing</CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-center items-center p-0 overflow-hidden" style={{ height: '300px' }}>
-            {drawingData.imageData && (
-              <img 
-                src={drawingData.imageData} 
-                alt="Original drawing" 
-                className="max-w-full max-h-full object-contain"
-              />
-            )}
-          </CardContent>
-        </Card>
-        
-        {/* Transformed Drawing */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Transformed Drawing</CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-center items-center p-0 overflow-hidden" style={{ height: '300px' }}>
-            {drawingData.transformedImageUrl ? (
-              <img 
-                src={drawingData.transformedImageUrl}
-                alt="Transformed drawing" 
-                className="max-w-full max-h-full object-contain"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full w-full bg-muted">
-                {renderLoadingState()}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Description */}
-      <Card>
-        <CardHeader>
+      {/* Description - Show this first while waiting for transformed image */}
+      <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-purple-900/30">
+        <CardHeader className="bg-gradient-to-r from-purple-100/50 to-blue-100/50 dark:from-purple-900/20 dark:to-blue-900/20">
           <CardTitle className="flex items-center gap-2">
-            Description
+            AI's Interpretation
             <HoverCard>
               <HoverCardTrigger asChild>
                 <svg 
@@ -137,18 +91,63 @@ const TransformationResult: React.FC<TransformationResultProps> = ({
             </HoverCard>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground leading-relaxed">
-            {drawingData.description || "No description available"}
-          </p>
+        <CardContent className="pt-6">
+          {isLoading && currentStep === 'describe' ? (
+            renderLoadingState()
+          ) : (
+            <p className="text-muted-foreground leading-relaxed bg-white/50 dark:bg-gray-800/50 p-4 rounded-lg shadow-inner">
+              {drawingData.description || "No description available"}
+            </p>
+          )}
         </CardContent>
-        <Separator />
-        <CardFooter className="justify-end pt-4 pb-4">
-          <Button onClick={onReset} className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600">
-            Create New Drawing
-          </Button>
-        </CardFooter>
       </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Original Drawing */}
+        <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
+          <CardHeader className="bg-gradient-to-r from-purple-100/50 to-blue-100/50 dark:from-purple-900/20 dark:to-blue-900/20">
+            <CardTitle>Original Drawing</CardTitle>
+          </CardHeader>
+          <CardContent className="flex justify-center items-center p-0 overflow-hidden bg-white dark:bg-gray-800" style={{ height: '300px' }}>
+            {drawingData.imageData && (
+              <img 
+                src={drawingData.imageData} 
+                alt="Original drawing" 
+                className="max-w-full max-h-full object-contain rounded-md"
+              />
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Transformed Drawing */}
+        <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow duration-300">
+          <CardHeader className="bg-gradient-to-r from-purple-100/50 to-blue-100/50 dark:from-purple-900/20 dark:to-blue-900/20">
+            <CardTitle>Transformed Drawing</CardTitle>
+          </CardHeader>
+          <CardContent className="flex justify-center items-center p-0 overflow-hidden bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-purple-900/30" style={{ height: '300px' }}>
+            {drawingData.transformedImageUrl ? (
+              <img 
+                src={drawingData.transformedImageUrl}
+                alt="Transformed drawing" 
+                className="max-w-full max-h-full object-contain rounded-md"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full w-full">
+                {renderLoadingState()}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="flex justify-center pt-4">
+        <Button 
+          onClick={onReset} 
+          className="px-8 py-2 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 transition-all duration-300 shadow-md hover:shadow-lg"
+        >
+          Create New Drawing
+        </Button>
+      </div>
     </div>
   )
 }

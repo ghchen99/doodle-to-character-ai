@@ -3,8 +3,6 @@
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import DrawingCanvas from "@/components/canvas/drawing-canvas"
 import ImageUploader from "@/components/canvas/image-uploader"
 import TransformationResult from "@/components/canvas/transformation-result"
@@ -28,25 +26,33 @@ export default function DrawingTransformer() {
   const handleImageCapture = async (imageData: string) => {
     setIsLoading(true)
     setCurrentStep('describe')
+    setDrawingData({
+      imageData,
+      description: null, 
+      transformedImageUrl: null,
+    })
     
     try {
+      // Process drawing description
       const description = await transformDrawing.analyzeDrawing(imageData)
       
-      setDrawingData({
-        imageData,
+      // Update with description first
+      setDrawingData(prev => ({
+        ...prev,
         description,
-        transformedImageUrl: null,
-      })
+      }))
       
-      // Automatically start transformation
+      // Then start transformation
+      setCurrentStep('transform')
+      
+      // Generate artwork
       const transformedImageUrl = await transformDrawing.generateArtwork(description)
       
+      // Update with transformed image
       setDrawingData(prev => ({
         ...prev,
         transformedImageUrl,
       }))
-      
-      setCurrentStep('transform')
     } catch (error) {
       console.error("Error processing drawing:", error)
       alert("Something went wrong while processing your drawing. Please try again.")
@@ -67,18 +73,28 @@ export default function DrawingTransformer() {
   return (
     <div className="space-y-8">
       {currentStep === 'draw' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Create Your Drawing</CardTitle>
-            <CardDescription>
+        <Card className="overflow-hidden border-none shadow-lg bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-purple-900/30">
+          <CardHeader className="bg-gradient-to-r from-purple-100/50 to-blue-100/50 dark:from-purple-900/20 dark:to-blue-900/20">
+            <CardTitle className="text-2xl">Create Your Drawing</CardTitle>
+            <CardDescription className="text-muted-foreground">
               Draw something amazing or upload an existing drawing
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <Tabs defaultValue="draw" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="draw">Draw</TabsTrigger>
-                <TabsTrigger value="upload">Upload</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-white/50 dark:bg-gray-800/50 p-1 rounded-lg">
+                <TabsTrigger 
+                  value="draw"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500/20 data-[state=active]:to-blue-500/20"
+                >
+                  Draw
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="upload"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500/20 data-[state=active]:to-blue-500/20"
+                >
+                  Upload
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="draw" className="mt-0">
                 <DrawingCanvas onCapture={handleImageCapture} />
