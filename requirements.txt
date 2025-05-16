@@ -1,0 +1,8 @@
+openai
+requests
+pillow
+python-dotenv
+fastapi
+uvicorn
+pydantic
+python-multipart
